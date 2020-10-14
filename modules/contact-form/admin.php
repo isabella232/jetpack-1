@@ -635,6 +635,16 @@ function grunion_ajax_spam() {
 		$email          = get_post_meta( $post_id, '_feedback_email', true );
 		$content_fields = Grunion_Contact_Form_Plugin::parse_fields_from_content( $post_id );
 
+		$keys         = array( 'entry_title', 'entry_permalink', 'feedback_id' );
+		$entry_values = array_intersect_key( $content_fields['_feedback_all_fields'], array_flip( $keys ) );
+		$form_post_id = url_to_postid( $entry_values['entry_permalink'] );
+
+		$form_fields = Grunion_Contact_Form_Plugin::convert_feedback_to_form_fields( $post_id, $form_post_id );
+		if ( $form_fields ) {
+			/** This action is already documented in modules/contact-form/grunion-contact-form.php */
+			do_action( 'grunion_after_feedback_post_inserted', $form_post_id, $form_fields, false, $entry_values );
+		}
+
 		if ( ! empty( $email ) && ! empty( $content_fields ) ) {
 			if ( isset( $content_fields['_feedback_author_email'] ) ) {
 				$comment_author_email = $content_fields['_feedback_author_email'];

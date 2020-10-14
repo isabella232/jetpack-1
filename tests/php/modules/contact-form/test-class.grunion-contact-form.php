@@ -1545,4 +1545,141 @@ class WP_Test_Grunion_Contact_Form extends WP_UnitTestCase {
 		$posts = get_posts( array( 'post_type' => 'feedback' ) );
 		$this->assertSame( 0, count( $posts ), 'posts count matches after deleting the other feedback responder' );
 	}
+
+	/**
+	 * Tests the Grunion_Contact_Form_Plugin::convert_feedback_to_form_fields method.
+	 *
+	 * @param array       $inputs The test inputs.
+	 * @param array|false $expected_output The expected output.
+	 *
+	 * @dataProvider data_provider_convert_feedback_to_form_fields
+	 */
+	public function test_convert_feedback_to_form_fields( $inputs, $expected_output ) {
+		global $post;
+		$post = null;
+
+		if ( $inputs['form_hash'] ) {
+			add_post_meta( $inputs['feedback_post'], '_contact_form_shortcode_hash', $inputs['form_hash'] );
+		}
+
+		if ( $inputs['form_hash'] && $inputs['form_fields'] ) {
+			add_post_meta( $inputs['form_post'], '_g_feedback_shortcode_' . $inputs['form_hash'], $inputs['form_fields'] );
+		}
+
+		if ( $inputs['form_hash'] && $inputs['form_attrs'] ) {
+			add_post_meta( $inputs['form_post'], '_g_feedback_shortcode_atts_' . $inputs['form_hash'], $inputs['form_attrs'] );
+		}
+
+		$this->assertEquals(
+			$expected_output,
+			Grunion_Contact_Form_Plugin::convert_feedback_to_form_fields( $inputs['feedback_post'], $inputs['form_post'] )
+		);
+	}
+
+	/**
+	 * Data provider for test_convert_feedback_to_form_fields().
+	 *
+	 * @return array Test data with the following format:
+	 */
+	public function data_provider_convert_feedback_to_form_fields() {
+		// Create a feedback post.
+		$feedback_post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'test message.
+					<!--more-->
+					AUTHOR: test name
+					AUTHOR EMAIL: test@example.com
+					AUTHOR URL:
+					SUBJECT: test subject line
+					IP: 127.0.0.1
+					Array
+					(
+						[1_Name] => Test Name
+						[2_Email] => test@example.com
+						[3_Message] => Test Message.
+						[email_marketing_consent] =>
+						[entry_title] => Test Contact Form
+						[entry_permalink] => https://example.com/test_contact_form/
+						[feedback_id] => 123456789abcdef
+					)',
+			)
+		);
+
+		$form_post_id = $this->factory->post->create();
+
+		$form_attrs = array(
+			'to'                     => 'test@example.com',
+			'subject'                => 'test subject line',
+			'show_subject'           => 'no',
+			'widget'                 => 0,
+			'id'                     => $form_post_id,
+			'submit_button_text'     => 'Submit',
+			'customThankyou'         => '',
+			'customThankyouMessage'  => 'Thank you for your submission!',
+			'customThankyouRedirect' => '',
+			'jetpackCRM'             => 1,
+		);
+
+		$form_fields = '[contact-field required="1" type="name" label="Name"/]
+				[contact-field required="1" type="email" label="Email"/]
+				[contact-field type="textarea" label="Message"/]
+				[contact-field type="textarea" label="Test Label"/]
+				<div class="wp-block-jetpack-button"><button class="wp-block-button__link" style="" data-id-attr="placeholder" type="submit">Contact Us</button></div>';
+
+		// Create the form object to be used as the expected output.
+		Grunion_Contact_Form_Plugin::init();
+		$form = new Grunion_Contact_Form( $form_attrs, $form_fields );
+		$form->fields[ 'g' . $form_post_id . '-name' ]->value    = 'Test Name';
+		$form->fields[ 'g' . $form_post_id . '-email' ]->value   = 'test@example.com';
+		$form->fields[ 'g' . $form_post_id . '-message' ]->value = 'Test Message.';
+
+		// Remove the existing post meta data from the feedback and form posts.
+		$form_hash = $form->hash;
+		delete_post_meta( $feedback_post_id, '_contact_form_shortcode_hash' );
+		delete_post_meta( $form_post_id, '_g_feedback_shortcode_' . $form_hash );
+		delete_post_meta( $form_post_id, '_g_feedback_shortcode_atts_' . $form_hash );
+
+		return array(
+			'all data available'  => array(
+				'inputs' => array(
+					'feedback_post' => $feedback_post_id,
+					'form_post'     => $form_post_id,
+					'form_hash'     => $form_hash,
+					'form_fields'   => $form_fields,
+					'form_attrs'    => $form_attrs,
+				),
+				'output' => $form->fields,
+			),
+			'missing form hash'   => array(
+				'inputs' => array(
+					'feedback_post' => $feedback_post_id,
+					'form_post'     => $form_post_id,
+					'form_hash'     => false,
+					'form_fields'   => $form_fields,
+					'form_attrs'    => $form_attrs,
+				),
+				'output' => false,
+			),
+			'missing form fields' => array(
+				'inputs' => array(
+					'feedback_post' => $feedback_post_id,
+					'form_post'     => $form_post_id,
+					'form_hash'     => $form_hash,
+					'form_fields'   => false,
+					'form_attrs'    => $form_attrs,
+				),
+				'output' => false,
+			),
+			'missing form attrs'  => array(
+				'inputs' => array(
+					'feedback_post' => $feedback_post_id,
+					'form_post'     => $form_post_id,
+					'form_hash'     => $form_hash,
+					'form_fields'   => $form_fields,
+					'form_attrs'    => false,
+				),
+				'output' => false,
+			),
+		);
+	}
 } // end class
