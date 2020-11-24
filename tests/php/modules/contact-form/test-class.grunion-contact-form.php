@@ -864,7 +864,8 @@ class WP_Test_Grunion_Contact_Form extends WP_UnitTestCase {
 		// Get label.
 		$label = $this->getFirstElement( $wrapper_div, 'label' );
 
-		$this->assertEquals( trim( $label->nodeValue), $attributes['label'], 'Label is not what we expect it to be...' );
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$this->assertEquals( trim( $label->nodeValue ), $attributes['label'], 'Label is not what we expect it to be...' );
 	}
 
 	public function assertValidField( $html, $attributes ) {
@@ -876,7 +877,7 @@ class WP_Test_Grunion_Contact_Form extends WP_UnitTestCase {
 		$label = $this->getFirstElement( $wrapper_div, 'label' );
 
 		// Input.
-		$input =  (
+		$input = (
 			'textarea' === $attributes['type']
 			? $this->getFirstElement( $wrapper_div, 'textarea' )
 			: $this->getFirstElement( $wrapper_div, 'input' )
@@ -941,7 +942,7 @@ class WP_Test_Grunion_Contact_Form extends WP_UnitTestCase {
 			$this->assertEquals( $input->getAttribute( 'checked' ), 'checked', 'Input checked doesn\'t match' );
 		}
 
-		$this->assertEquals( $input->getAttribute( 'class' ), $attributes['type'] . ' ' .$attributes['class'], 'Input class doesn\'t match' );
+		$this->assertEquals( $input->getAttribute( 'class' ), $attributes['type'] . ' ' . $attributes['class'], 'Input class doesn\'t match' );
 	}
 
 	public function assertValidFieldMultiField( $html, $attributes ) {
@@ -1108,7 +1109,7 @@ class WP_Test_Grunion_Contact_Form extends WP_UnitTestCase {
 				array(
 					'Contact Form' => 'subj2',
 					'4_Comment'    => 'This is my test 16',
-				)
+				),
 			),
 		);
 
@@ -1478,7 +1479,6 @@ class WP_Test_Grunion_Contact_Form extends WP_UnitTestCase {
 		$mock->expects( $this->never() )
 			->method( 'get_post_meta_for_csv_export' );
 
-
 		$mock->expects( $this->exactly( 2 ) )
 			->method( 'get_parsed_field_contents_of_post' )
 			->will( $this->returnValueMap( $get_parsed_field_contents_of_post_map ) );
@@ -1541,7 +1541,7 @@ class WP_Test_Grunion_Contact_Form extends WP_UnitTestCase {
 			$form = new Grunion_Contact_Form(
 				array(
 					'to'      => '"john" <john@example.com>',
-					'subject' => 'Hello world! [ ' . mt_rand() .' ]',
+					'subject' => 'Hello world! [ ' . mt_rand() . ' ]',
 				),
 				'
 					[contact-field label="Name" type="name" required="1"/]
@@ -1586,7 +1586,7 @@ class WP_Test_Grunion_Contact_Form extends WP_UnitTestCase {
 			$form = new Grunion_Contact_Form(
 				array(
 					'to'      => '"john" <john@example.com>',
-					'subject' => 'Hello world! [ ' . mt_rand() .' ]',
+					'subject' => 'Hello world! [ ' . mt_rand() . ' ]',
 				),
 				'
 					[contact-field label="Name" type="name" required="1"/]
@@ -1620,7 +1620,7 @@ class WP_Test_Grunion_Contact_Form extends WP_UnitTestCase {
 			$form = new Grunion_Contact_Form(
 				array(
 					'to'      => '"jane" <jane_doe@example.com>',
-					'subject' => 'Hello world! [ ' . mt_rand() .' ]',
+					'subject' => 'Hello world! [ ' . mt_rand() . ' ]',
 				),
 				'
 					[contact-field label="Name" type="name" required="1"/]
